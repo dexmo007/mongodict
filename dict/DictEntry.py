@@ -20,6 +20,11 @@ class EntryKind(Enum):
     PRONOUN = 'pron'
     PREFIX = 'prefix'
     SUFFIX = 'suffix'
+    NAME = 'name'
+    PP = 'pp'  # todo this is probably a participle
+    RELATIVE_PRONOUN = 'rel'  # todo join with pron class
+    ATTRIBUTE = 'attr'
+    PREDICATE_ADJECTIVE = 'pred'  # todo join with adj class
 
     @staticmethod
     def map(values: []):

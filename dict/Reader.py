@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 
-from pprint import pprint
+from pprint import pprint, PrettyPrinter
 
 from dict.DictEntry import DictEntry, InvalidLine, Gender, EntryKind
 
@@ -39,21 +39,26 @@ def count_entries(file: str = IMPORT_FILE):
     return i
 
 
-# todo as bit flag
+# todo as bit flag and extension map flag -> desc
 def parse_entry_kinds(kinds: []):
     if len(kinds) == 0:
         return
     for kind in re.split(r'[ ]|/', kinds[0]):
         split = kind.split(':')
         if len(split) == 2:
-            desc = split[0].replace('.', '')
-            kind = split[1].replace('.', '')
+            desc = split[0].lower().replace('.', '')
+            kind = split[1].lower().replace('.', '')
             yield {
                 'kind': EntryKind(kind).name,
                 'desc': desc
             }
         else:
-            kind = split[0].replace('.', '')
+            kind = split[0].lower().replace('.', '')
+            # work around the bugs
+            if kind == 'nounnoun':
+                kind = 'noun'
+            if (kind == '[none]') | (kind == '[none][none]'):
+                continue
             yield {
                 'kind': EntryKind(kind).name
             }
@@ -64,7 +69,11 @@ def read(file: str = IMPORT_FILE):
         for line in f:
             try:
                 line = line.strip()
-                if (not line) | line.startswith('#'):  # skip empty or comment lines
+                # skip empty or comment lines
+                if (not line) | line.startswith('#'):
+                    continue
+                # skip faulty lines
+                if line == 'noun':
                     continue
 
                 de, en, *kind = line.split('\t')
