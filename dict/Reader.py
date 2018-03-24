@@ -1,14 +1,7 @@
-from pymongo import MongoClient
-
-from pprint import pprint, PrettyPrinter
-
-from dict.DictEntry import DictEntry, InvalidLine, Gender, EntryKind
-
-from dict.Util import substr_until
-
+import html
 import re
 
-import html
+from dict.DictEntry import DictEntry, Gender, EntryKind
 
 gender_regex = re.compile(r'.* {([a-z]+)}.*')  # todo extract using this regex and replace with ''
 
@@ -25,10 +18,7 @@ def parse_infos(entry: str):
     return entry[:i].strip(), list(infos)
 
 
-IMPORT_FILE = 'C:/Users/henri/OneDrive/Documents/dev/dict.cc.de-en.txt'
-
-
-def count_entries(file: str = IMPORT_FILE):
+def count_entries(file: str):
     i = 0
     with open(file, encoding='utf-8') as f:
         for line in f:
@@ -64,7 +54,7 @@ def parse_entry_kinds(kinds: []):
             }
 
 
-def read(file: str = IMPORT_FILE):
+def read(file: str):
     with open(file, encoding='utf-8') as f:
         for line in f:
             try:
