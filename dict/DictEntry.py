@@ -1,5 +1,5 @@
 import json
-from enum import Enum
+from enum import Enum, Flag, unique, auto, IntFlag
 
 
 class InvalidLine(Exception):
@@ -7,32 +7,71 @@ class InvalidLine(Exception):
         pass
 
 
-class EntryKind(Enum):
-    UNDEFINED = ''
-    NOUN = 'noun'
-    VERB = 'verb'
-    ADVERB = 'adv'
-    ADJECTIVE = 'adj'
-    PAST_PARTICIPLE = 'past-p'
-    PRESENT_PARTICIPLE = 'pres-p'
-    PREPOSITION = 'prep'
-    CONJUNCTION = 'conj'
-    PRONOUN = 'pron'
-    PREFIX = 'prefix'
-    SUFFIX = 'suffix'
-    NAME = 'name'
-    PP = 'pp'  # todo this is probably a participle
-    RELATIVE_PRONOUN = 'rel'  # todo join with pron class
-    ATTRIBUTE = 'attr'
-    PREDICATE_ADJECTIVE = 'pred'  # todo join with adj class
+class EntryKind(Flag):
+    UNDEFINED = 0
+    NOUN = 1
+    VERB = 2
+    ADVERB = 4
+    ADJECTIVE = 8
+    PAST_PARTICIPLE = 16
+    PRESENT_PARTICIPLE = 32
+    PREPOSITION = 64
+    CONJUNCTION = 128
+    PRONOUN = 256
+    PREFIX = 512
+    SUFFIX = 1024
+    NAME = 2048
+    PP = 4096  # todo this is probably a participle
+    RELATIVE_PRONOUN = 8192  # todo join with pron class
+    ATTRIBUTE = 16384
+    PREDICATE_ADJECTIVE = 32768  # todo join with adj class
 
     @staticmethod
-    def map(values: []):
-        def _map():
-            for v in values:
-                yield EntryKind(v)
+    def to_int(values: []):
+        res = EntryKind.UNDEFINED
+        for entry_kind in values:
+            res |= entry_kind
+        return res
 
-        return list(_map())
+    mapping = {
+        'noun': NOUN,
+        'verb': VERB,
+        'adv': ADVERB,
+        'adj': ADJECTIVE,
+        'past-p': PAST_PARTICIPLE,
+        'pres-p': PRESENT_PARTICIPLE,
+        'prep': PREPOSITION,
+        'conj': CONJUNCTION,
+        'pron': PRONOUN,
+        'prefix': PREFIX,
+        'suffix': SUFFIX,
+        'name': NAME,
+        'pp': PP,
+        'rel': RELATIVE_PRONOUN,
+        'attr': ATTRIBUTE,
+        'pred': PREDICATE_ADJECTIVE
+    }
+
+    @staticmethod
+    def map(value: str):
+        return {
+            'noun': EntryKind.NOUN,
+            'verb': EntryKind.VERB,
+            'adv': EntryKind.ADVERB,
+            'adj': EntryKind.ADJECTIVE,
+            'past-p': EntryKind.PAST_PARTICIPLE,
+            'pres-p': EntryKind.PRESENT_PARTICIPLE,
+            'prep': EntryKind.PREPOSITION,
+            'conj': EntryKind.CONJUNCTION,
+            'pron': EntryKind.PRONOUN,
+            'prefix': EntryKind.PREFIX,
+            'suffix': EntryKind.SUFFIX,
+            'name': EntryKind.NAME,
+            'pp': EntryKind.PP,
+            'rel': EntryKind.RELATIVE_PRONOUN,
+            'attr': EntryKind.ATTRIBUTE,
+            'pred': EntryKind.PREDICATE_ADJECTIVE
+        }[value]
 
     def __repr__(self):
         return self.name
@@ -52,6 +91,7 @@ class Gender(Enum):
     FEMALE = 'f'
     NEUTRAL = 'n'
     PLURAL = 'pl'
+    SINGULAR = 'sg'
 
     def __repr__(self):
         return self.name
