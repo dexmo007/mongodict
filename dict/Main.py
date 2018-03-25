@@ -27,13 +27,14 @@ def main(input_file, clean, host, port, database):
 
     print('Entries: ', Reader.count_entries(input_file))
     start_time = datetime.now()
-    # count = 0
-    # for dict_entry in Reader.read(input_file):
-    #     importer.import_entry(dict_entry)
-    #     count += 1
+    count = 0
+    for dict_entry in Reader.read(input_file):
+        importer.import_entry(dict_entry)
+        count += 1
     importer.import_all(Reader.read(input_file))
     elapsed_time = datetime.now() - start_time
-    print('Processed', importer.last_imported, 'entries', 'in', str(elapsed_time))
+    count = importer.last_imported
+    print('Processed', count, 'entries', 'in', str(elapsed_time))
 
 
 if __name__ == '__main__':

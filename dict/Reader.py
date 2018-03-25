@@ -57,7 +57,57 @@ def parse_entry_kinds(kinds: []):
             if (kind == '[none]') | (kind == '[none][none]'):
                 continue
             entry_kinds |= EntryKind.map(kind)
-    return entry_kinds.value, ext
+    return entry_kinds, ext
+
+
+def parse_words(entry: str):
+    words = []
+    genders = {}
+
+    def add_gender(key, value):
+        genders[str(key)] = genders.get(str(key), 0) | value
+
+    gender_ext = {}
+    infos = {}
+    offset = 0
+    split = entry.split(' ')
+    i = 0
+    while i < len(split):
+        word = split[i]
+        if word.startswith('[{'):
+            gender = Gender.parse(word[2:len(word) - 1])
+            add_gender(i - offset, gender)
+            offset += 1
+            i += 1
+            ext = split[i]
+            if ext.startswith('{'):
+                add_gender(i - offset, Gender.parse(ext[1:len(word) - 1]))
+            else:
+                gender_ext[i - offset] = {gender.value: ext[:len(ext) - 1]}
+            offset += 1
+        elif word.startswith('{'):
+            add_gender(i - offset, Gender.parse(word[1:len(word) - 1]))
+            offset += 1
+        elif word.startswith('['):
+            j = 0
+            if not word.endswith(']'):
+                j = 1
+                while not split[i + j].endswith(']'):
+                    j += 1
+            infos[str(i - offset)] = split[i:i + j][1:len(word) - 1]
+            offset += 1 + j
+        else:
+            words.append(word)
+        i += 1
+
+    info = {}
+    if len(genders) > 0:
+        info['genders'] = genders
+    if len(gender_ext) > 0:
+        info['gender_ext'] = gender_ext
+    if len(infos) > 0:
+        info['infos'] = infos
+    return words, infos
 
 
 def read(file_path: str):
@@ -76,25 +126,36 @@ def read(file_path: str):
 
                 dict_entry = DictEntry()
 
-                entry_kinds, ext = parse_entry_kinds(kind)
-                dict_entry.entry_kinds = entry_kinds
-                if len(ext) > 0:
-                    dict_entry.ext = ext
+                entry_kinds, entry_kind_ext = parse_entry_kinds(kind)
+                dict_entry.entry_kinds = entry_kinds.value
+                if len(entry_kind_ext) > 0:
+                    dict_entry.entry_kind_ext = entry_kind_ext
 
-                if EntryKind.NOUN & entry_kinds:
-                    match = gender_regex.match(de)
-                    if match:
-                        gender = match.group(1)
-                        de = re.sub(r' {[a-z]+}', '', de)  # todo multiple genders: [{} {}] and gender of multiple words
-                        # todo gender in the english version
-                        dict_entry.gender = Gender(gender).name
+                # if EntryKind.NOUN & entry_kinds:
+                #     match = gender_regex.match(de)
+                #     if match:
+                #         if de.count('[{') >= 1:
+                #             print(line)
+                #         gender = match.group(1)
+                #         de = re.sub(r' {[a-z]+}', '', de)  # todo multiple genders: [{} {}] and gender of multiple words
+                #         # todo gender in the english version
+                #         dict_entry.gender = Gender(gender).name
+                #
+                # de_entry, de_infos = parse_infos(de)
+                # en_entry, en_infos = parse_infos(en)
+                # dict_entry.de = html.unescape(de_entry)
+                # if len(de_infos) > 0:
+                #     dict_entry.de_infos = de_infos
+                # dict_entry.en = html.unescape(en_entry)
+                # if len(en_infos) > 0:
+                #     dict_entry.en_infos = en_infos
 
-                de_entry, de_infos = parse_infos(de)
-                en_entry, en_infos = parse_infos(en)
-                dict_entry.de = html.unescape(de_entry)
+                de_words, de_infos = parse_words(de)
+                dict_entry.de = html.unescape(' '.join(de_words))
                 if len(de_infos) > 0:
                     dict_entry.de_infos = de_infos
-                dict_entry.en = html.unescape(en_entry)
+                en_words, en_infos = parse_words(en)
+                dict_entry.en = html.unescape(' '.join(en_words))
                 if len(en_infos) > 0:
                     dict_entry.en_infos = en_infos
 

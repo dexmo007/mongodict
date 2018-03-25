@@ -86,15 +86,19 @@ class DictEntry:
         return json.dumps(self.__dict__)
 
 
-class Gender(Enum):
-    MALE = 'm'
-    FEMALE = 'f'
-    NEUTRAL = 'n'
-    PLURAL = 'pl'
-    SINGULAR = 'sg'
+class Gender(IntFlag):
+    MALE = 1
+    FEMALE = 2
+    NEUTRAL = 4
+    PLURAL = 8
+    SINGULAR = 16
 
-    def __repr__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
+    @staticmethod
+    def parse(value: str):
+        return {
+            'm': Gender.MALE,
+            'f': Gender.FEMALE,
+            'n': Gender.NEUTRAL,
+            'pl': Gender.PLURAL,
+            'sg': Gender.SINGULAR
+        }[value]
