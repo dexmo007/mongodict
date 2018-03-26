@@ -95,6 +95,8 @@ class Gender(IntFlag):
 
     @staticmethod
     def parse(value: str):
+        if value.endswith('.'):
+            value = value[:len(value) - 1]
         return {
             'm': Gender.MALE,
             'f': Gender.FEMALE,

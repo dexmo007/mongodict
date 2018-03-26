@@ -61,7 +61,7 @@ def parse_entry_kinds(kinds: []):
 
 
 def parse_words(entry: str):
-    words = []
+    words = ''
     genders = {}
 
     def add_gender(key, value):
@@ -69,35 +69,64 @@ def parse_words(entry: str):
 
     gender_ext = {}
     infos = {}
-    offset = 0
+
+    def add_info(key, value):
+        infos[str(key)] = infos.get(key, []).append(value)
+
+    offset = 1
     split = entry.split(' ')
     i = 0
     while i < len(split):
         word = split[i]
         if word.startswith('[{'):
-            gender = Gender.parse(word[2:len(word) - 1])
-            add_gender(i - offset, gender)
-            offset += 1
-            i += 1
-            ext = split[i]
-            if ext.startswith('{'):
-                add_gender(i - offset, Gender.parse(ext[1:len(word) - 1]))
+            if word.endswith('}]'):
+                end_index = len(word) - 2
+                gender = Gender.parse(word[2:end_index])
+                add_gender(i - offset, gender)
+                offset += 1
             else:
-                gender_ext[i - offset] = {gender.value: ext[:len(ext) - 1]}
-            offset += 1
+                end_index = len(word) - 1
+                gender = Gender.parse(word[2:end_index])
+                add_gender(i - offset, gender)
+                offset += 1
+                i += 1
+                ext = split[i]
+                if ext.startswith('{'):
+                    add_gender(i - offset, Gender.parse(ext[1:len(word) - 1]))
+                else:
+                    gender_ext[i - offset] = {gender.value: ext[:len(ext) - 1]}
+                offset += 1
         elif word.startswith('{'):
-            add_gender(i - offset, Gender.parse(word[1:len(word) - 1]))
-            offset += 1
-        elif word.startswith('['):
-            j = 0
-            if not word.endswith(']'):
+            close_index = word.rfind('}')
+            if close_index != -1:
+                add_gender(i - offset, Gender.parse(word[1:close_index]))  # todo append remainder to words
+                offset += 1
+            else:
                 j = 1
-                while not split[i + j].endswith(']'):
+                close_index = split[i + j].rfind('}')
+                while close_index == -1:
                     j += 1
-            infos[str(i - offset)] = split[i:i + j][1:len(word) - 1]
-            offset += 1 + j
+                    close_index = split[i + j].rfind('}')
+                info = ' '.join(split[i:i + j + 1])
+                add_info(i - offset, info[1:len(info) - 1])
+        elif word.startswith('['):
+            close_index = word.rfind(']')
+            if close_index != -1:
+                add_info(i - offset, word[1:close_index])
+                offset += 1
+                words += word[close_index:len(word)]
+            else:
+                j = 1
+                close_index = split[i + j].rfind(']')
+                while close_index == -1:
+                    j += 1
+                    close_index = split[i + j].rfind(']')
+                info = ' '.join(split[i:i + j + 1])
+                add_info(i - offset, info[1:len(info) - 1])
+                offset += 1 + j
+                i += j
         else:
-            words.append(word)
+            words += ' ' + word
         i += 1
 
     info = {}
@@ -107,7 +136,7 @@ def parse_words(entry: str):
         info['gender_ext'] = gender_ext
     if len(infos) > 0:
         info['infos'] = infos
-    return words, infos
+    return words[1:], info
 
 
 def read(file_path: str):
@@ -151,11 +180,11 @@ def read(file_path: str):
                 #     dict_entry.en_infos = en_infos
 
                 de_words, de_infos = parse_words(de)
-                dict_entry.de = html.unescape(' '.join(de_words))
+                dict_entry.de = html.unescape(de_words)
                 if len(de_infos) > 0:
                     dict_entry.de_infos = de_infos
                 en_words, en_infos = parse_words(en)
-                dict_entry.en = html.unescape(' '.join(en_words))
+                dict_entry.en = html.unescape(en_words)
                 if len(en_infos) > 0:
                     dict_entry.en_infos = en_infos
 
