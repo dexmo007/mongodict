@@ -1,4 +1,4 @@
-from dict.dictionary import load_dictionary
+from dict.dictionary import load_words_dict
 
 
 def shift(c, offset):
@@ -53,7 +53,7 @@ class CaesarCipher:
         offset = 0
         words = sorted(get_words(phrase), key=lambda w: len(w), reverse=True)
         # print(words)
-        dictionary = load_dictionary('en')
+        dictionary = load_words_dict('en')
         print('Loaded', len(dictionary), 'words')
         current = words[0]
         valid_ciphers = []
@@ -74,6 +74,8 @@ class CaesarCipher:
 
 
 def main():
+    import os
+    print(os.getenv('DATA_ROOT'))
     print('ABC'.lower())
     # print(ord('A'))
     # cipher = CaesarCipher(23)
