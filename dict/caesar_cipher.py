@@ -1,4 +1,5 @@
 from dict.dictionary import load_words_dict
+from dict.string_utils import get_words
 
 
 def shift(c, offset):
@@ -10,10 +11,6 @@ def shift(c, offset):
         return chr(a + (ord(c) - a + offset) % 26)
     else:
         return c
-
-
-def get_words(phrase: str):
-    return list(map(str.lower, phrase.split(' ')))
 
 
 def ord_diff(w1: str, w2: str):

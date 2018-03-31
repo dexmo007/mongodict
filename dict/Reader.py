@@ -2,7 +2,7 @@ import html
 import re
 
 from dict.DictEntry import DictEntry, Gender, EntryKind
-from dict.StringUtils import split2
+from dict.string_utils import split2
 
 gender_regex = re.compile(r'.* {([a-z]+)}.*')  # todo extract using this regex and replace with ''
 

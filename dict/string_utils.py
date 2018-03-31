@@ -14,5 +14,5 @@ def substring_until(self: str, s: str):
     return self[:(len(self) if find == -1 else find)]
 
 
-if __name__ == '__main__':
-    print(split2('foo barr/was or this/that', ' ', '/'))
+def get_words(phrase: str):
+    return list(map(str.lower, phrase.split(' ')))
