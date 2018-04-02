@@ -1,7 +1,5 @@
 import random
-import itertools
-from itertools import combinations, product
-
+import copy
 from dict import string_utils
 from dict.dictionary import load_words_dict, load_words_set
 
@@ -99,9 +97,10 @@ def crack_word(word: str):
 def crack_word_stupid(encrypted: str):
     dictionary = load_words_set('en')
 
-    def try_find_alphabet(_a: {}, possibility: str):
+    def try_find_alphabet(_a: {}, possibility: str, encrypted_word: str):
+        _a = _a.copy()
         for j, c in enumerate(possibility):
-            letter = encrypted[j]
+            letter = encrypted_word[j]
             if letter in _a:
                 if _a[letter] != c:
                     return None
@@ -112,15 +111,14 @@ def crack_word_stupid(encrypted: str):
     alphabets = []
     encrypted_words = string_utils.get_words(encrypted)
     for word in filter(lambda w: len(w) == len(encrypted_words[0]), dictionary):
-        a = try_find_alphabet({}, word)
+        a = try_find_alphabet({}, word, encrypted_words[0])
         if a:
             alphabets.append(a)
     for e in encrypted_words[1:]:
         new_alphabets = []
-        possibilities = filter(lambda w: len(w) == len(e), dictionary)
-        for p in possibilities:
-            for alphabet in alphabets.copy():
-                alphabet = try_find_alphabet(alphabet, p)
+        for p in filter(lambda w: len(w) == len(e), dictionary):
+            for alphabet in alphabets:
+                alphabet = try_find_alphabet(alphabet, p, e)
                 if alphabet:
                     new_alphabets.append(alphabet)
         alphabets = new_alphabets
@@ -133,7 +131,7 @@ def main():
         [22, 11, 20, 14, 8, 15, 24, 16, 12, 6, 13, 4, 23, 2, 0, 19, 5, 10, 25, 21, 7, 3, 18, 17, 1, 9])
     print(cipher.alphabet)
     # p = 'there goes the dog in the pan crazy'
-    p = 'onomatopoeia you dirty bag'
+    p = 'onomatopoeia you dirty bag i hope there is some kind of punishment'
     print('Phrase:', p)
     e = cipher.encrypt(p)
     print('Encrypted:', e)
@@ -141,6 +139,7 @@ def main():
     print('Decrypted:', d)
     cracked_cipher = crack_word_stupid(e)
     for c in cracked_cipher:
+        c[' '] = ' '
         print(''.join(map(c.get, e)))
 
 
